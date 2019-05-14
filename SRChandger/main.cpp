@@ -4,13 +4,13 @@
 #include "SRCclass.h"
 using namespace std;
 
-int main()
+int main(int argc, char **argv)
 {
-
+	//открытие файлов
 	string s;
 	cout << "Ведите путь к изменяемому файлу: ";
 	cin >> s;
-	//открытие файла
+	
 	ifstream f(s, ios::binary);
 	if(!f.is_open()) {
 		cout << "Файл не был открыт\n";
@@ -29,7 +29,7 @@ int main()
 	int answ;
 	struct WavHeader *p;
 	p = samples.getHeaderAdres();
-	
+	// попытка чтения файла
 	try {
 		samples.read(f);
 	} catch (ErrorWav & msg) {
@@ -37,8 +37,8 @@ int main()
 		return 1;
 	}
 	f.close();
-
-
+	
+	// изменение ЧД
 	if (p->SamplesPerSecond == 8000) {
 		cout << "ЧД: 8 кГц. Возможно только увеличение.\n" << "Вы хотите увеличить ЧД?\n" << "Да: 0\t" << "Нет: 1\n";
 		cin >> answ;
@@ -56,7 +56,7 @@ int main()
 			samples.decrease();
 		else samples.increase();
 	}
-
+	//запись в файл
 	samples.write (fs);
 
 	fs.close();

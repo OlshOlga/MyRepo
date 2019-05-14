@@ -4,7 +4,6 @@
 using namespace std;
 
 #pragma pack (1)
-
 struct WavHeader {
 
 	char rID[4] = {0}; // "RIFF"
@@ -25,15 +24,16 @@ struct WavHeader {
 class SampleRateChandger
 {
 protected:
-	int16_t * value;
-	WavHeader header;
+	int16_t * value; // буфер для сэмплов
+	WavHeader header; 
 public:
-	void read (ifstream & file);
-	void decrease ();
-	void increase ();
-	void write (ofstream & file);
-	int16_t * getValueAdres ();
-	WavHeader * getHeaderAdres ();
+	void read (ifstream & file); // чтение файла
+	void decrease (); // уменьшение кол-ва отсчетов в 2 раза
+	void increase (); // увеличение кол-ва отсчетов в 2 раза
+	void write (ofstream & file); // запись в файл
+	int16_t * getValueAdres (); // возвращает указатель на WavHeader
+	WavHeader * getHeaderAdres (); // возвращает указатель на массив сэмплов
+	
 };
 
 class ErrorWav

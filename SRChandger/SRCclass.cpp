@@ -1,16 +1,19 @@
 #include "SRCclass.h"
 
-void SampleRateChandger::read (ifstream & file)
+void SampleRateChandger::read (ifstream & file) // чтение файла
 {
 	file.read ((char*)&header, sizeof header);
 	char r[4] = {'R','I','F','F'};
 	char w[4] = {'W','A','V','E'};
+	char f[4] = {'f','m','t',' '};
 	char d[4] = {'d','a','t','a'};
 	for (int i=0; i < 4; i++) {
 		if (header.rID[i] != r[i])
-		throw ErrorWav("Не RIFF формат");
+			throw ErrorWav("Не RIFF формат");
 		if (header.wID[i] != w[i])
 			throw ErrorWav("Не WAVE формат");
+		if (header.Fmt[i] != f[i])
+			throw ErrorWav("Не fmt формат");
 		if (header.dID[i] != d[i])
 			throw ErrorWav("Не data формат");
 	}
@@ -22,7 +25,7 @@ void SampleRateChandger::read (ifstream & file)
 		throw ErrorWav("Недопустимая битность звука");
 
 	int num_samples = header.dLen * 8 / header.BitsPerSample;
-	if (num_samples % 2 != 0 ) {
+	if (num_samples % 2 != 0 ) { // если кол-во отсчетов нечетное, последний отбрасывается  
 		num_samples = num_samples - 1;
 		header.rLen = header.rLen - 2;
 		header.dLen = header.dLen - 2;
@@ -30,18 +33,17 @@ void SampleRateChandger::read (ifstream & file)
 	value = new int16_t [num_samples];
 	for (int i=0; i < num_samples; i++)
 		file.read((char*)&value[i], 2);
-//	return header.SamplesPerSecond;
 }
 
 
-void SampleRateChandger::decrease ()
+void SampleRateChandger::decrease () // уменьшение кол-ва отсчетов в 2 раза
 {
 	int num_samples = header.dLen * 8 / header.BitsPerSample;
-	SampleRateChandger ret;
-	ret.value = new int16_t [num_samples/2];
+	SampleRateChandger ret; // временный объект
+	ret.value = new int16_t [num_samples/2]; 
 	int j=0;
 	for (int i=0; i < num_samples; i++)
-		if (i%2 == 0) {
+		if (i%2 == 0) { // в новый массив записываются только стоящие на четных позициях сэмплы
 			ret.value[j] = value[i];
 			j++;
 		}
@@ -55,16 +57,16 @@ void SampleRateChandger::decrease ()
 	header.dLen = header.dLen/2;
 }
 
-void SampleRateChandger::increase ()
+void SampleRateChandger::increase () // увеличение кол-ва отсчетов в 2 раза
 {
 	int num_samples = header.dLen * 8 / header.BitsPerSample;
-	SampleRateChandger ret;
+	SampleRateChandger ret; // временный объект
 	ret.value = new int16_t [num_samples*2-1];
 	int i=0;
 	for (int j=0; j < num_samples*2-1; j++) {
-		if (j%2 == 0) {
+		if (j%2 == 0) { // старые сэмплы добавляются на четные позиции нового буфера
 			ret.value[j] = value[i];
-		} else {
+		} else { // на нечетных позициях нового буфера сэмплы добавляются с помощью линейной интерполяции
 			ret.value[j] = (value[i]+value[i+1])/2;
 			i++;
 		}
@@ -80,20 +82,20 @@ void SampleRateChandger::increase ()
 }
 
 
-void SampleRateChandger::write (ofstream & file)
+void SampleRateChandger::write (ofstream & file) // запись в файл
 {
-	file.write ((char*)&header, sizeof    header);
+	file.write ((char*)&header, sizeof header);
 	int num_samples = header.dLen * 8 / header.BitsPerSample;
 	for (int i=0; i < num_samples; i++)
 		file.write((char*)&value[i], 2);
 	delete[] value;
 }
 
-int16_t * SampleRateChandger::getValueAdres ()
+int16_t * SampleRateChandger::getValueAdres () // возвращает указатель на массив сэмплов
 {
 	return value;
 }
-WavHeader * SampleRateChandger::getHeaderAdres ()
+WavHeader * SampleRateChandger::getHeaderAdres () // возвращает указатель на WavHeader
 {
 	struct WavHeader * p;
 	p = &header;
